@@ -1,23 +1,29 @@
 {
-  "name": "book_store_backend",
+  "name": "book-store-backend",
   "version": "1.0.0",
-  "description": "Online Book Store Backend API",
-  "main": "app.js",
+  "description": "",
+  "homepage": "https://github.com/prashantlord/book-store-backend#readme",
+  "bugs": {
+    "url": "https://github.com/prashantlord/book-store-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prashantlord/book-store-backend.git"
+  },
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "index.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon src/server.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.0",
     "express": "^5.2.1",
-    "mongoose": "^8.12.0",
-    "morgan": "^1.10.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.9"
-  },
-  "author": "",
-  "license": "ISC"
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.3.3",
+    "nodemon": "^3.1.14",
+    "zod": "^4.3.6"
+  }
 }

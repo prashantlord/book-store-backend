@@ -1,7 +1,7 @@
 services:
   mongodb:
     image: mongo:7.0
-    container_name: onlinebookstore
+    container_name: online-bookstore
     restart: unless-stopped
     ports:
       - "3001:27017"
