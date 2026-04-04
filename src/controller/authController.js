@@ -1,7 +1,4 @@
 import registerService from "../services/auth/registerService.js";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import User from "../models/user.js";
 import loginService from "../services/auth/loginService.js";
 
 export async function getUser(req, res) {

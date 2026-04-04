@@ -1,9 +1,8 @@
 import bcrypt from 'bcryptjs';
-import User from "../../models/user.js";
+import User from "../../models/userModel.js";
 import createJwtTokens from "../../utils/createJwtToken.js";
 
 export default async function loginService({email, password}) {
-
     // 1. Find user by email
     const user = await User.findOne({email}).lean();
     if (!user) {
