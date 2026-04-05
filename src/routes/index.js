@@ -7,7 +7,7 @@ import authenticateUser from "../middleware/authenticateUser.js";
 const router = express.Router();
 
 router.use("/", authRoute);
-router.use('/books', bookRoute);
-router.use('/books/reviews', authenticateUser, reviewRoute);
+router.use("/books", bookRoute);
+router.use("/books/:bookId/reviews", authenticateUser, reviewRoute);
 
 export default router;

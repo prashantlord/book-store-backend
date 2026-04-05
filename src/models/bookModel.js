@@ -6,8 +6,7 @@ const bookSchema = new mongoose.Schema({
     }, description: {
         type: String, required: true,
     }, author: {
-        type: mongoose.Schema.Types.ObjectId, ref: 'User',
-        required: true,
+        type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true,
     }, price: {
         amount: {
             type: Number, required: true,
@@ -22,20 +21,12 @@ const bookSchema = new mongoose.Schema({
         type: String, required: true,
     }, coverImageUrl: {
         type: String,
-    },
-    reviews: [{
+    }, reviews: [{
         user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true,
-        },
-        rating: {
-            type: Number,
-            min: 1,
-            max: 5,
-            required: true,
-        },
-        comment: String,
+            type: mongoose.Schema.Types.ObjectId, ref: 'User', unique: true,
+        }, rating: {
+            type: Number, min: 1, max: 5, required: true,
+        }, comment: String,
     }]
 }, {
     timestamps: true,
