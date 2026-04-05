@@ -1,31 +1,44 @@
 import {createReviewService, deleteReviewService, updateReviewService} from "../services/books/reviewService.js";
 
 export const createBookReview = async (req, res) => {
+    const bookId = req.params.bookId;
+    const {rating, comment} = req.body;
+    const userId = req.user.id;
+
     try {
-        const book = await createReviewService(req, res);
-        res.status(200).json(book);
+        const data = await createReviewService({bookId, userId, rating, comment});
+        return res.status(data.statusCode).json(data);
     } catch (err) {
         console.error(err);
-        res.status(400).json({error: err.message});
+        return res.status(err.statusCode || 500).json({error: err.message});
     }
 }
 
 export const updateBookReview = async (req, res) => {
+    const bookId = req.params.bookId;
+    const reviewId = req.params.reviewId;
+    const userId = req.user.id;
+    const {rating, comment} = req.body;
+
     try {
-        const book = await updateReviewService(req, res);
-        res.status(200).json(book);
+        const data = await updateReviewService({bookId, reviewId, userId, rating, comment});
+        return res.status(200).json(data);
     } catch (err) {
         console.error(err);
-        res.status(400).json({error: err.message});
+        return res.status(err.statusCode || 500).json({error: err.message});
     }
 }
 
 export const deleteBookReview = async (req, res) => {
+    const bookId = req.params.bookId;
+    const userId = req.user.id;
+    const reviewId = req.params.reviewId;
+
     try {
-        const book = await deleteReviewService(req, res);
-        res.status(200).json(book);
+        const data = await deleteReviewService({bookId, reviewId, userId});
+        return res.status(200).json(data);
     } catch (err) {
         console.error(err);
-        res.status(400).json({error: err.message});
+        return res.status(err.statusCode || 500).json({error: err.message});
     }
 }
