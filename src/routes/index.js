@@ -1,13 +1,18 @@
 import express from "express";
-import authRoute from "./auth/authRoute.js";
-import bookRoute from "./books/bookRoute.js";
-import reviewRoute from "./books/reviewRoute.js";
 import authenticateUser from "../middleware/authenticateUser.js";
+import libraryRoutes from "./users/libraryRoutes.js";
+import authRoutes from "./auth/authRoutes.js";
+import bookRoutes from "./books/bookRoutes.js";
+import reviewRoutes from "./books/reviewRoutes.js";
+import {route} from "express/lib/application.js";
+import purchaseRoutes from "./users/purchaseRoutes.js";
 
 const router = express.Router();
 
-router.use("/", authRoute);
-router.use("/books", bookRoute);
-router.use("/books/:bookId/reviews", authenticateUser, reviewRoute);
+router.use("/", authRoutes);
+router.use("/books", bookRoutes);
+router.use("/books/:bookId/reviews", authenticateUser, reviewRoutes);
+router.use("/library", authenticateUser, libraryRoutes);
+route.use("/carts", authenticateUser, purchaseRoutes);
 
 export default router;

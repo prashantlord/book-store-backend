@@ -1,7 +1,10 @@
 import Book from "../../models/bookModel.js";
 import {errorResponse, successResponse} from "../responseService.js";
+import {validateId} from "../validationSerivce.js";
 
-export const createReviewService = async ({bookId, userId, rating, comment}) => {
+export const createReviewService = async (bookId, userId, rating, comment) => {
+    if (validateId(bookId)) errorResponse(404, "Invlid Book Id");
+
     const book = await Book.findById(bookId);
     if (!book) throw new Error("Book not found");
 
@@ -19,7 +22,10 @@ export const createReviewService = async ({bookId, userId, rating, comment}) => 
     return successResponse(201, "Review Successfully created", book);
 };
 
-export const updateReviewService = async ({bookId, reviewId, userId, rating, comment}) => {
+export const updateReviewService = async (bookId, reviewId, userId, rating, comment) => {
+    if (validateId(bookId)) errorResponse(404, "Invlid Book Id");
+    if (validateId(reviewId)) errorResponse(404, "Invlid Rating Id");
+
     const book = await Book.findById(bookId);
     if (!book) errorResponse(404, "Book not found");
 
@@ -37,7 +43,10 @@ export const updateReviewService = async ({bookId, reviewId, userId, rating, com
     return successResponse(200, "Review Updated Successfully", book);
 };
 
-export const deleteReviewService = async ({bookId, reviewId, userId}) => {
+export const deleteReviewService = async (bookId, reviewId, userId) => {
+    if (validateId(bookId)) errorResponse(404, "Invlid Book Id");
+    if (validateId(reviewId)) errorResponse(404, "Invlid Review Id");
+
     const book = await Book.findById(bookId);
     if (!book) errorResponse(404, "Book not found");
 

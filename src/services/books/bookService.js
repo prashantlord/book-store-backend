@@ -1,4 +1,5 @@
 import Book from "../../models/bookModel.js";
+import {validateId} from "../validationSerivce.js";
 
 // Utility: Build category filter query
 const buildCategoryQuery = (categoryParam) => {
@@ -11,8 +12,7 @@ const buildCategoryQuery = (categoryParam) => {
             return {
                 categories: {
                     $elemMatch: {
-                        $regex: normalizedCat.split('').join('.*'),
-                        $options: 'i'
+                        $regex: normalizedCat.split('').join('.*'), $options: 'i'
                     }
                 }
             };
@@ -44,9 +44,9 @@ const getBestChoice = (booksWithRatings) => {
 };
 
 // Main service
-export const getBooksService = async (req) => {
+export const getBooksService = async (category) => {
     try {
-        const query = buildCategoryQuery(req.query.category);
+        const query = buildCategoryQuery(category);
 
         const books = await Book.find(query)
             .populate('author', 'username email avatar_url');
@@ -59,14 +59,10 @@ export const getBooksService = async (req) => {
             const bookObj = book.toObject();
 
             // Sort reviews by created_at descending
-            const sortedReviews = bookObj.reviews
-                ? [...bookObj.reviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                : [];
+            const sortedReviews = bookObj.reviews ? [...bookObj.reviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];
 
             return {
-                ...bookObj,
-                rating: calculateRatings(book),
-                reviews: sortedReviews
+                ...bookObj, rating: calculateRatings(book), reviews: sortedReviews
             };
         });
 
@@ -80,22 +76,19 @@ export const getBooksService = async (req) => {
     }
 };
 
-export const getSingleBookService = async (req) => {
-    try {
-        const bookId = req.params?.bookId;
-        const book = await Book.findById(bookId)
-            .populate('author', 'username email avatar_url')
-            .lean();
+export const getSingleBookService = async (bookId) => {
+    validateId(bookId, "Invalid Book Id");
 
-        if (!book) throw new Error('No book found for book');
+    const book = await Book.findById(bookId)
+        .populate('author', 'username email avatar_url')
+        .lean();
 
-        // Sort reviews by created_at descending
-        if (book.reviews) {
-            book.reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        }
+    if (!book) throw new Error('No book found.');
 
-        return book;
-    } catch (err) {
-        throw err;
+    // Sort reviews by created_at descending
+    if (book.reviews) {
+        book.reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
+
+    return book;
 };

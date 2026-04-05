@@ -6,7 +6,7 @@ export const createBookReview = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const data = await createReviewService({bookId, userId, rating, comment});
+        const data = await createReviewService(bookId, userId, rating, comment);
         return res.status(data.statusCode).json(data);
     } catch (err) {
         console.error(err);
@@ -21,7 +21,7 @@ export const updateBookReview = async (req, res) => {
     const {rating, comment} = req.body;
 
     try {
-        const data = await updateReviewService({bookId, reviewId, userId, rating, comment});
+        const data = await updateReviewService(bookId, reviewId, userId, rating, comment);
         return res.status(200).json(data);
     } catch (err) {
         console.error(err);
@@ -35,7 +35,7 @@ export const deleteBookReview = async (req, res) => {
     const reviewId = req.params.reviewId;
 
     try {
-        const data = await deleteReviewService({bookId, reviewId, userId});
+        const data = await deleteReviewService(bookId, reviewId, userId);
         return res.status(200).json(data);
     } catch (err) {
         console.error(err);
