@@ -10,7 +10,7 @@ export const createBookReview = async (req, res) => {
         return res.status(data.statusCode).json(data);
     } catch (err) {
         console.error(err);
-        return res.status(err.statusCode || 500).json({error: err.message});
+        return res.status(err.statusCode || 500).json({err, error: err.message});
     }
 }
 
@@ -25,7 +25,7 @@ export const updateBookReview = async (req, res) => {
         return res.status(200).json(data);
     } catch (err) {
         console.error(err);
-        return res.status(err.statusCode || 500).json({error: err.message});
+        return res.status(err.statusCode || 500).json({err, error: err.message});
     }
 }
 
@@ -39,6 +39,6 @@ export const deleteBookReview = async (req, res) => {
         return res.status(200).json(data);
     } catch (err) {
         console.error(err);
-        return res.status(err.statusCode || 500).json({error: err.message});
+        return res.status(err.statusCode || 500).json({err, error: err.message});
     }
 }

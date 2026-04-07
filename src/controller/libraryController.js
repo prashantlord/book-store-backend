@@ -14,9 +14,8 @@ export const toggleWishlist = async (req, res) => {
         return res.status(data.statusCode).json(data)
     } catch (err) {
         console.error(err);
-        return res.status(err.statusCode || 500).json({error: err.message});
+        return res.status(err.statusCode || 500).json({err, error: err.message});
     }
-
 }
 
 export const toggleFavorite = async (req, res) => {
@@ -27,7 +26,7 @@ export const toggleFavorite = async (req, res) => {
         return res.status(data.statusCode).json(data)
     } catch (err) {
         console.error(err);
-        return res.status(err.statusCode || 500).json({error: err.message});
+        return res.status(err.statusCode || 500).json({err, error: err.message});
     }
 }
 
@@ -40,7 +39,7 @@ export const addToCart = async (req, res) => {
         return res.status(data.statusCode).json(data);
     } catch (err) {
         console.error(err);
-        return res.status(err.statusCode || 500).json({error: err.message});
+        return res.status(err.statusCode || 500).json({err, error: err.message});
     }
 }
 
@@ -53,6 +52,6 @@ export const removeFromCart = async (req, res) => {
         return res.status(data.statusCode).json(data);
     } catch (err) {
         console.error(err);
-        return res.status(err.statusCode || 500).json({error: err.message});
+        return res.status(err.statusCode || 500).json({err, error: err.message});
     }
 }

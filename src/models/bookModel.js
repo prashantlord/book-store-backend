@@ -11,7 +11,7 @@ const bookSchema = new mongoose.Schema({
         amount: {
             type: Number, required: true,
         }, currency: {
-            type: String, enum: ['USD', 'EUR', 'INR', "NPR"], required: true,
+            type: String, required: true, enum: ['NPR']
         }
     }, categories: [{
         type: String,

@@ -1,5 +1,3 @@
-// utils/responseService.js
-
 export const successResponse = (statusCode = 200, message = "Success", data = null, meta = null) => {
     return {
         statusCode, success: true, message, data, ...(meta && {meta})
