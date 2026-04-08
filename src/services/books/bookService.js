@@ -1,11 +1,11 @@
 import Book from "../../models/bookModel.js";
-import {validateId} from "../validationSerivce.js";
+import {errorResponse, successResponse} from "../../utils/responseHelper.js"; // adjust path as needed
+import {generateJwtToken, validateId} from "../../utils/helperFunctions.js";
 
 // Utility: Build category filter query
 const buildCategoryQuery = (categoryParam) => {
     if (!categoryParam) return {};
     const categories = Array.isArray(categoryParam) ? categoryParam : [categoryParam];
-
     return {
         $or: categories.map(cat => {
             const normalizedCat = cat.replace(/[-\s]/g, '').toLowerCase();
@@ -26,13 +26,10 @@ const calculateRatings = (book) => {
     book.reviews.forEach(r => {
         if (r.rating >= 1 && r.rating <= 5) ratingsCount[r.rating]++;
     });
-
     const totalRatings = Object.values(ratingsCount).reduce((a, b) => a + b, 0);
     const sumRatings = Object.entries(ratingsCount)
         .reduce((sum, [key, val]) => sum + Number(key) * val, 0);
-
     const avgRating = totalRatings ? sumRatings / totalRatings : 0;
-
     return {avgRating, ratingsCount};
 };
 
@@ -45,35 +42,29 @@ const getBestChoice = (booksWithRatings) => {
 
 // Main service
 export const getBooksService = async (category) => {
-    try {
-        const query = buildCategoryQuery(category);
+    const query = buildCategoryQuery(category);
+    const books = await Book.find(query)
+        .populate('author', 'username email avatar_url');
 
-        const books = await Book.find(query)
-            .populate('author', 'username email avatar_url');
-
-        if (!books || books.length === 0) {
-            return {books: [], bestChoice: null, averageRating: 0};
-        }
-
-        const booksWithRatings = books.map(book => {
-            const bookObj = book.toObject();
-
-            // Sort reviews by created_at descending
-            const sortedReviews = bookObj.reviews ? [...bookObj.reviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];
-
-            return {
-                ...bookObj, rating: calculateRatings(book), reviews: sortedReviews
-            };
-        });
-
-        const bestChoice = getBestChoice(booksWithRatings);
-
-        return {books: booksWithRatings, bestChoice};
-
-    } catch (error) {
-        console.error("Error in getBookService:", error);
-        throw error;
+    if (!books || books.length === 0) {
+        return successResponse(200, "No books found", {books: [], bestChoice: null});
     }
+
+    const booksWithRatings = books.map(book => {
+        const bookObj = book.toObject();
+        const sortedReviews = bookObj.reviews
+            ? [...bookObj.reviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            : [];
+        return {
+            ...bookObj,
+            rating: calculateRatings(book),
+            reviews: sortedReviews
+        };
+    });
+
+    const bestChoice = getBestChoice(booksWithRatings);
+
+    return successResponse(200, "Books fetched successfully", {books: booksWithRatings, bestChoice});
 };
 
 export const getSingleBookService = async (bookId) => {
@@ -83,12 +74,11 @@ export const getSingleBookService = async (bookId) => {
         .populate('author', 'username email avatar_url')
         .lean();
 
-    if (!book) throw new Error('No book found.');
+    if (!book) errorResponse(404, "No book found");
 
-    // Sort reviews by created_at descending
     if (book.reviews) {
         book.reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
 
-    return book;
+    return successResponse(200, "Book fetched successfully", {book});
 };

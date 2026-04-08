@@ -11,12 +11,11 @@ export default async function authenticateUser(req, res, next) {
     if (!token) return res.status(401).json({message: 'JWT Token Required'});
 
     try {
-        // Verify token
-        // Attach user data to request
         req.user = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
         next(); // proceed to next middleware or route
     } catch (err) {
+        console.log(err);
         return res.status(401).json({ message: 'Invalid token' });
     }
 }

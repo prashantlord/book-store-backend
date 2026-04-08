@@ -1,24 +1,16 @@
-import bcrypt from 'bcryptjs';
+import {errorResponse, successResponse} from "../../utils/responseHelper.js";
 import User from "../../models/userModel.js";
-import createJwtTokens from "../../utils/createJwtToken.js";
+import {checkHashPassword, generateJwtToken} from "../../utils/helperFunctions.js";
 
-export default async function loginService({email, password}) {
-    // 1. Find user by email
+export default async function loginService(email, password) {
     const user = await User.findOne({email}).lean();
-    if (!user) {
-        throw new Error("Invalid email.")
-    }
+    if (!user) errorResponse(404, "Invalid email.");
 
-    // 2. Compare plain password with stored hashed password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-        throw new Error("Invalid password");
-    }
+    await checkHashPassword(password, user.password);
 
-    // 3. Generate JWT token
-    const token = createJwtTokens({id: user._id, email: user.email});
+    const token = generateJwtToken(user);
 
-    return {
-        user: {id: user._id, username: user.username, email: user.email}, token: token
-    }
+    const data = {user, token};
+
+    return successResponse(200, "Login successful", data);
 }

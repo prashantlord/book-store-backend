@@ -1,18 +1,17 @@
 import {v4 as uuidv4} from 'uuid';
-import {errorResponse} from "../responseService.js";
+import {errorResponse, successResponse} from "../../utils/responseHelper.js";
 import axios from "axios";
+import Order from "../../models/orderSchema.js";
 
 
 const buildKhaltiPayload = (userDetails, cartItems) => {
     let sum = 0;
-    const amount = cartItems.map((item) => sum += parseFloat(item.price.amount)) * 100;
-
     const purchaseOrderId = uuidv4();
+    const amount = cartItems.map((item) => sum += parseFloat(item.price.amount));
 
     const amountBreakDown = cartItems.map(item => ({
         label: item.title, amount: item.price.amount * 100
     }));
-    console.log(amountBreakDown);
 
     const productDetails = cartItems.map(item => ({
         identity: item._id.toString(),   // convert ObjectId to string
@@ -25,9 +24,9 @@ const buildKhaltiPayload = (userDetails, cartItems) => {
                 'Authorization': 'key live_secret_key_68791341fdd94846a146f0457ff7b455',
                 'Content-Type': 'application/json',
             }, body: JSON.stringify({
-                "return_url": "http://localhost:5173/profile/library",
+                "return_url": "http://localhost:5173",
                 "website_url": "http://localhost:3000",
-                "amount": amount,
+                "amount": sum * 100,
                 "purchase_order_id": purchaseOrderId,
                 "purchase_order_name": "Books",
                 "customer_info": {
@@ -38,7 +37,7 @@ const buildKhaltiPayload = (userDetails, cartItems) => {
                 "merchant_username": "prashant",
                 "merchant_extra": "prashant"
             })
-        }, purchaseOrderId
+        }, amount: sum, purchaseOrderId
     };
 }
 
@@ -50,16 +49,56 @@ const khaltiPayment = async (option) => {
         return response.data;
     } catch (error) {
         console.error(error.response?.data);
-        return errorResponse(400, "Something went wrong");
+        errorResponse(400, "Khalti Payment Failed");
+    }
+}
+
+const verifyKhaltiPayment = async (pidx) => {
+    try {
+        const response = await axios.post(
+            "https://dev.khalti.com/api/v2/epayment/lookup",
+            {pidx: pidx},
+            {
+                headers: {
+                    Authorization: "Key live_secret_key_68791341fdd94846a146f0457ff7b455",
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error.response?.data);
+        errorResponse(error.response?.data.status_code, "Khalti Payment Failed. " + error.response?.data.detail);
     }
 }
 
 const handlePaymentService = async (userDetails, cartItems) => {
     const payload = buildKhaltiPayload(userDetails, cartItems);
-    return await khaltiPayment(payload.options);
+    const data = await khaltiPayment(payload.options);
+    return {data, amount: payload.amount, purchaseOrderId: payload.purchaseOrderId};
 }
 
 export const createOrderService = async (userDetails, cartItems) => {
-    const res = await handlePaymentService(userDetails, cartItems);
-    console.log(res);
+
+    const data = await handlePaymentService(userDetails, cartItems);
+    console.log(data);
+
+    const books = cartItems.map((item) => item._id);
+
+    const newOrder = await Order.create({
+        user: userDetails._id,
+        books,
+        orderDetails: {
+            pidx: data.data.pidx,
+            status: "pending",
+            purchaseOrderId: data.purchaseOrderId,
+            amount: data.amount,
+        }
+    });
+
+    return successResponse(200, "Payment Initiated Successfully", newOrder);
+}
+
+export const checkPaymentService = async (pidx) => {
+    return await verifyKhaltiPayment(pidx);
 }

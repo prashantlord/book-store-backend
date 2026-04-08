@@ -1,64 +1,83 @@
 import Book from "../../models/bookModel.js";
-import {errorResponse, successResponse} from "../responseService.js";
-import {validateId} from "../validationSerivce.js";
+import {errorResponse, successResponse} from "../../utils/responseHelper.js";
+import {validateId} from "../../utils/helperFunctions.js";
 
-export const createReviewService = async (bookId, userId, rating, comment) => {
-    if (validateId(bookId)) errorResponse(404, "Invlid Book Id");
-
-    const book = await Book.findById(bookId);
-    if (!book) throw new Error("Book not found");
-
-    const alreadyReviewed = book.reviews.some(r => r.user.toString() === userId);
-
-    if (alreadyReviewed) {
-        errorResponse(409, "Review Already Exists");
-    }
-
-    book.reviews.push({
-        user: userId, rating, comment: comment ?? ""
-    });
-
-    await book.save();
-    return successResponse(201, "Review Successfully created", book);
-};
-
-export const updateReviewService = async (bookId, reviewId, userId, rating, comment) => {
-    if (validateId(bookId)) errorResponse(404, "Invlid Book Id");
-    if (validateId(reviewId)) errorResponse(404, "Invlid Rating Id");
+// 🔹 Common helpers
+const getBook = async (bookId) => {
+    validateId(bookId, 404, "Book id is invalid");
 
     const book = await Book.findById(bookId);
     if (!book) errorResponse(404, "Book not found");
 
+    return book;
+};
+
+const getReview = (book, reviewId) => {
+    validateId(reviewId, 404, "Review id is invalid");
+
     const review = book.reviews.id(reviewId);
     if (!review) errorResponse(404, "Review not found");
 
-    if (review.user.toString() !== userId) {
+    return review;
+};
+
+const checkOwnership = (review, userId) => {
+    if (review.user.toString() !== userId.toString()) {
         errorResponse(401, "Unauthorized");
     }
+};
+
+// 🔹 Services
+export const createReviewService = async (bookId, userId, rating, comment) => {
+    const book = await getBook(bookId);
+
+    const alreadyReviewed = book.reviews.some(
+        (r) => r.user.toString() === userId
+    );
+
+    if (alreadyReviewed) {
+        errorResponse(409, "Review already exists");
+    }
+
+    book.reviews.push({
+        user: userId,
+        rating,
+        comment: comment ?? "",
+    });
+
+    await book.save();
+
+    return successResponse(201, "Review successfully created", book);
+};
+
+export const updateReviewService = async (
+    bookId,
+    reviewId,
+    userId,
+    rating,
+    comment
+) => {
+    const book = await getBook(bookId);
+    const review = getReview(book, reviewId);
+
+    checkOwnership(review, userId);
 
     if (rating !== undefined) review.rating = rating;
     if (comment !== undefined) review.comment = comment;
 
     await book.save();
-    return successResponse(200, "Review Updated Successfully", book);
+
+    return successResponse(200, "Review updated successfully", book);
 };
 
 export const deleteReviewService = async (bookId, reviewId, userId) => {
-    if (validateId(bookId)) errorResponse(404, "Invlid Book Id");
-    if (validateId(reviewId)) errorResponse(404, "Invlid Review Id");
+    const book = await getBook(bookId);
+    const review = getReview(book, reviewId);
 
-    const book = await Book.findById(bookId);
-    if (!book) errorResponse(404, "Book not found");
+    checkOwnership(review, userId);
 
-    const review = book.reviews.id(reviewId);
-    if (!review) errorResponse(404, "Review not found");
-
-    if (review.user.toString() !== userId) {
-        errorResponse(401, "Unauthorized");
-    }
-
-    review.deleteOne(); // ✅ better than filter
-
+    review.deleteOne();
     await book.save();
-    return book;
+
+    return successResponse(200, "Review deleted successfully", book);
 };

@@ -1,18 +1,11 @@
 import User from "../../models/userModel.js";
-import {errorResponse, successResponse} from "../responseService.js";
+import {errorResponse, successResponse} from "../../utils/responseHelper.js";
 
-export const userDetailsService = async (userId) => {
-    const userDetails = await User.findById(userId)
-        .select("-password")
-        .populate('wishlist favorites library')
-        .populate({
-            path: 'cart', populate: {path: 'author'}
-        })
-
-    if (!userDetails) {
+export const userDetailsService = async (user) => {
+    if (!user) {
         errorResponse(404, "User details not found");
     }
-    return successResponse(200, "User Data Fetched Successfully.", userDetails);
+    return successResponse(200, "User Data Fetched Successfully.", user);
 }
 
 export const getUserCartItems = async (userId) => {
